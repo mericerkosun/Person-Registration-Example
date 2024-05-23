@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:person_registration/cubit/homepage_cubit.dart';
 import 'package:person_registration/entity/person.dart';
 import 'package:person_registration/views/new_register_page.dart';
 import 'package:person_registration/views/person_detail_page.dart';
@@ -14,15 +16,10 @@ class _HomePageState extends State<HomePage> {
 
   bool searching = false;
 
-  Future<List<Person>> showAllPeople() async {
-    var peopleList = <Person>[];
-    var p1 = Person(1, "Onuachu", "3030");
-    var p2 = Person(2, "Visca", "0707");
-    var p3 = Person(1, "Meunier", "1212");
-    peopleList.add(p1);
-    peopleList.add(p2);
-    peopleList.add(p3);
-    return peopleList;
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomepageCubit>().showAllPeople();
   }
 
   @override
@@ -32,7 +29,7 @@ class _HomePageState extends State<HomePage> {
         title: searching ?
         TextField(decoration: InputDecoration(hintText: "Search..."),
         onChanged: (searchResult){
-          print("Search Result : $searchResult");
+          context.read<HomepageCubit>().search(searchResult);
         },) :
             Text("Homepage"),
         actions: [
@@ -41,6 +38,7 @@ class _HomePageState extends State<HomePage> {
             setState(() {
               searching = false;
             });
+            context.read<HomepageCubit>().showAllPeople();
           }, icon: Icon(Icons.cancel)) :
           IconButton(onPressed: (){
             setState(() {
@@ -49,15 +47,13 @@ class _HomePageState extends State<HomePage> {
           }, icon: Icon(Icons.search)),
         ],
       ),
-      body: FutureBuilder<List<Person>>(
-        future: showAllPeople(),
-        builder: (context, snapshot){
-          if (snapshot.hasData){
-            var peopleList = snapshot.data;
+      body: BlocBuilder<HomepageCubit,List<Person>>(
+        builder: (context, personList){
+          if (personList.isNotEmpty){
             return ListView.builder(
-              itemCount: peopleList!.length,
+              itemCount: personList.length,
               itemBuilder: (context,index){
-                var person = peopleList[index];
+                var person = personList[index];
                 return GestureDetector(
                   onTap: (){
                     Navigator.push(context, MaterialPageRoute(builder: (context) => PersonDetailPage(person))).then((value){
@@ -78,7 +74,7 @@ class _HomePageState extends State<HomePage> {
                                 action: SnackBarAction(
                                   label: "Yes",
                                   onPressed: (){
-                                    print("Deleted Person ID : ${person.person_id}");
+                                    context.read<HomepageCubit>().delete(person.person_id);
                                   },
                                 )
                               )
