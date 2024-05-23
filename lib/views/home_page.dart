@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> {
                 return GestureDetector(
                   onTap: (){
                     Navigator.push(context, MaterialPageRoute(builder: (context) => PersonDetailPage(person))).then((value){
-                      print("Returned to home page.");
+                      context.read<HomepageCubit>().showAllPeople();
                     });
                   },
                   child: Card(
@@ -95,7 +95,7 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
           onPressed: (){
             Navigator.push(context, MaterialPageRoute(builder: (context) => NewRegisterPage())).then((value){
-              print("Returned to home page.");
+              context.read<HomepageCubit>().showAllPeople();
             });
           },
           child: Icon(Icons.add),

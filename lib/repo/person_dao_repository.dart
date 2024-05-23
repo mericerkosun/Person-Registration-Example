@@ -1,33 +1,43 @@
 import 'package:person_registration/entity/person.dart';
+import 'package:person_registration/sqlite/database_assistant.dart';
 
 class PersonDAORepository {
   Future<void> personRegister(String person_name, String person_phone) async {
-    print("Register : $person_name - $person_phone");
+    var db = await DatabaseAssistant.databaseAccess();
+    var infos = Map<String,dynamic>();
+    infos["person_name"] = person_name;
+    infos["person_phone"] = person_phone;
+    await db.insert("person", infos);
   }
 
   Future<void> personUpdate(int person_id, String person_name, String person_phone) async {
-    print("Register : $person_id - $person_name - $person_phone");
+    var db = await DatabaseAssistant.databaseAccess();
+    var infos = Map<String,dynamic>();
+    infos["person_name"] = person_name;
+    infos["person_phone"] = person_phone;
+    await db.update("person", infos, where: "person_id=?", whereArgs: [person_id]);
   }
 
   Future<List<Person>> getAllPeople() async {
-    var peopleList = <Person>[];
-    var p1 = Person(1, "Onuachu", "3030");
-    var p2 = Person(2, "Visca", "0707");
-    var p3 = Person(1, "Meunier", "1212");
-    peopleList.add(p1);
-    peopleList.add(p2);
-    peopleList.add(p3);
-    return peopleList;
+    var db = await DatabaseAssistant.databaseAccess();
+    List<Map<String,dynamic>> maps = await db.rawQuery("SELECT * FROM person");
+    return List.generate(maps.length, (i) {
+      var row = maps[i];
+      return Person(row["person_id"], row["person_name"], row["person_phone"]);
+    });
   }
 
   Future<List<Person>> searchPerson(String searchWord) async {
-    var peopleList = <Person>[];
-    var p1 = Person(1, "Onuachu", "3030");
-    peopleList.add(p1);
-    return peopleList;
+    var db = await DatabaseAssistant.databaseAccess();
+    List<Map<String,dynamic>> maps = await db.rawQuery("SELECT * FROM person WHERE person_name like '%$searchWord%'");
+    return List.generate(maps.length, (i) {
+      var row = maps[i];
+      return Person(row["person_id"], row["person_name"], row["person_phone"]);
+    });
   }
 
   Future<void> personDelete(int person_id,) async {
-    print("Register : $person_id");
+    var db = await DatabaseAssistant.databaseAccess();
+    await db.delete("person", where: "person_id=?",whereArgs: [person_id]);
   }
 }
